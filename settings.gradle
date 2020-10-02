@@ -1,0 +1,3 @@
+include ':easynav'
+include ':app'
+rootProject.name = "EasyNav"
