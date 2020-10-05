@@ -8,6 +8,12 @@ import androidx.fragment.app.FragmentManager
 import com.android.easynav.src.NavigatorData.Companion.backFragment
 import com.android.easynav.src.NavigatorData.Companion.fragStackList
 import com.android.easynav.src.NavigatorData.Companion.navigatorList
+import com.google.android.material.bottomnavigation.BottomNavigationView
+
+
+/**
+ * Created by Kemal Tunç on 2020-09-30
+ */
 
 
 class Navigator(
@@ -61,6 +67,12 @@ class Navigator(
         navigatorList.add(
             ControllerDetail(containerId, controllerName, fragmentManager)
         )
+    }
+
+    fun currentFragment(): Fragment? {
+        val frag = fragStackList.last()
+
+        return getFragmentByTag(frag.tag, frag.fm)
     }
 
     fun navigate() {
@@ -121,6 +133,11 @@ class Navigator(
         getActivity?.onBackPressed()
     }
 
+    inline fun <reified T : BaseController> createBottom(view: BottomNavigationView, fragments: List<Fragment>) {
+       view.create<T>(
+           fragments
+        )
+    }
 
     private val onBackListener = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {

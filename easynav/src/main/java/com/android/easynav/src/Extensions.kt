@@ -5,9 +5,13 @@ import androidx.fragment.app.Fragment
 import com.android.easynav.src.Navigator.Companion.backCurrentFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
+/**
+ * Created by Kemal Tunç on 2020-09-30
+ */
+
+
 inline fun <reified T : BaseController> BottomNavigationView.create(
-    fragments: List<Fragment>,
-    controller: Navigator
+    fragments: List<Fragment>
 ) {
 
     var changeScreen = true
@@ -36,10 +40,19 @@ inline fun <reified T : BaseController> BottomNavigationView.create(
 
     backCurrentFragment { fragTag ->
         changeScreen = false
-        val findItem = bottomMenu.find { it.fragment::class.java.simpleName == fragTag }
+        val findItem = bottomMenu.find { it.fragment.getFragTag("") == fragTag }
 
         findItem?.let {
             this.selectedItemId = it.menuId
+        } ?: let {
+            val index = NavigatorData.fragStackList.indexOfFirst { it.tag == fragTag }
+
+            for (i in index downTo 0) {
+                bottomMenu.find { it.fragment.tag == NavigatorData.fragStackList[i].tag }?.let {
+                    this.selectedItemId = it.menuId
+                    return@backCurrentFragment
+                }
+            }
         }
     }
 }

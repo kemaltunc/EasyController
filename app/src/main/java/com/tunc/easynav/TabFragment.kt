@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.android.easynav.src.Navigator
-import com.android.easynav.src.create
 import com.tunc.easynav.fragments.*
 import kotlinx.android.synthetic.main.fragment_tab.view.*
 
@@ -39,12 +38,13 @@ class TabFragment : Fragment() {
                 navigate()
             }
 
-            root.fragment_main_navigation.create<ChildController>(
+            navigator.createBottom<ChildController>(
+                root.fragment_main_navigation,
                 listOf(
                     firstFragment, secondFragment, thirdFragment, fourthFragment, fiveFragment
-                ),
-                navigator
+                )
             )
+
         }
 
         return root

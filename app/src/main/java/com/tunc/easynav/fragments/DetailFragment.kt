@@ -19,9 +19,6 @@ class DetailFragment : Fragment() {
 
         root = inflater.inflate(R.layout.fragment_detail, container, false)
 
-        root.go_button.setOnClickListener {
-
-        }
 
         return root
     }

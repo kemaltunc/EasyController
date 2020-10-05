@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.android.easynav.src.Navigator
+import com.tunc.easynav.ChildController
 import com.tunc.easynav.R
 
 class FourthFragment : Fragment() {
@@ -17,7 +19,7 @@ class FourthFragment : Fragment() {
     ): View? {
 
         root = inflater.inflate(R.layout.fragment_fourth, container, false)
-
+        
 
         return root
     }
