@@ -133,9 +133,12 @@ class Navigator(
         getActivity?.onBackPressed()
     }
 
-    inline fun <reified T : BaseController> createBottom(view: BottomNavigationView, fragments: List<Fragment>) {
-       view.create<T>(
-           fragments
+    inline fun <reified T : BaseController> createBottom(
+        view: BottomNavigationView,
+        fragments: List<Fragment>
+    ) {
+        view.create<T>(
+            fragments
         )
     }
 
@@ -180,9 +183,13 @@ class Navigator(
             block: Builder.() -> Unit = {}
         ) = Builder("", null).apply(block).build().navigateUp()
 
+        fun get() = Builder("", null).build()
+
+
         fun backCurrentFragment(f: (tag: String) -> Unit) {
             backFragment = f
         }
+
     }
 
     class Builder(

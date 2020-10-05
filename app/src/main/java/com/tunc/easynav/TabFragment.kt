@@ -44,7 +44,6 @@ class TabFragment : Fragment() {
                     firstFragment, secondFragment, thirdFragment, fourthFragment, fiveFragment
                 )
             )
-
         }
 
         return root
