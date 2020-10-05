@@ -1,6 +1,7 @@
 package com.android.easynav.src
 
 import android.app.Activity
+import android.content.Intent
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -131,6 +132,13 @@ class Navigator(
 
         }
         getActivity?.onBackPressed()
+    }
+
+    fun navigateUp(code:Int,intent: Intent){
+        currentFragment()?.let {
+            it.targetFragment!!.onActivityResult(code, Activity.RESULT_OK,intent)
+        }
+        navigateUp()
     }
 
     inline fun <reified T : BaseController> createBottomMenu(
