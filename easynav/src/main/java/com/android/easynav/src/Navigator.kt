@@ -133,7 +133,7 @@ class Navigator(
         getActivity?.onBackPressed()
     }
 
-    inline fun <reified T : BaseController> createBottom(
+    inline fun <reified T : BaseController> createBottomMenu(
         view: BottomNavigationView,
         fragments: List<Fragment>
     ) {
@@ -184,7 +184,6 @@ class Navigator(
         ) = Builder("", null).apply(block).build().navigateUp()
 
         fun get() = Builder("", null).build()
-
 
         fun backCurrentFragment(f: (tag: String) -> Unit) {
             backFragment = f
