@@ -40,8 +40,8 @@ class Navigator(
 
     private val getActivity: Activity?
         get() {
-            val last = fragStackList.last()
-            val currentFragment = getFragmentByTag(last.tag, last.fm)
+            val last = fragStackList.lastOrNull()
+            val currentFragment = getFragmentByTag(last?.tag, last?.fm)
             return currentFragment?.activity
         }
 
@@ -54,7 +54,10 @@ class Navigator(
 
             navigate()
 
-            appCompatActivity.onBackPressedDispatcher.addCallback(appCompatActivity, onBackListener)
+            appCompatActivity.onBackPressedDispatcher.addCallback(
+                appCompatActivity,
+                onBackListener(activity)
+            )
 
         }
     }
@@ -106,8 +109,8 @@ class Navigator(
         }
     }
 
-    private fun getFragmentByTag(tag: String, fm: FragmentManager): Fragment? {
-        return fm.findFragmentByTag(tag)
+    private fun getFragmentByTag(tag: String?, fm: FragmentManager?): Fragment? {
+        return fm?.findFragmentByTag(tag)
     }
 
 
@@ -134,9 +137,9 @@ class Navigator(
         getActivity?.onBackPressed()
     }
 
-    fun navigateUp(code:Int,intent: Intent){
+    fun navigateUp(code: Int, intent: Intent) {
         currentFragment()?.let {
-            it.targetFragment!!.onActivityResult(code, Activity.RESULT_OK,intent)
+            it.targetFragment!!.onActivityResult(code, Activity.RESULT_OK, intent)
         }
         navigateUp()
     }
@@ -150,7 +153,7 @@ class Navigator(
         )
     }
 
-    private val onBackListener = object : OnBackPressedCallback(true) {
+    private fun onBackListener(activity: Activity) = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             if (fragStackList.size > 1) {
 
@@ -166,7 +169,7 @@ class Navigator(
                 fragStackList.remove(fragStackList.last())
 
             } else {
-                getActivity?.finish()
+                activity.finish()
             }
 
         }

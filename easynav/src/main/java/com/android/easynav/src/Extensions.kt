@@ -40,9 +40,9 @@ inline fun <reified T : BaseController> BottomNavigationView.create(
 
     backCurrentFragment { fragTag ->
         changeScreen = false
-        val findItem = bottomMenu.find { it.fragment.getFragTag("") == fragTag }
+        val menu = bottomMenu.find { it.fragment.getFragTag("") == fragTag }
 
-        findItem?.let {
+        menu?.let {
             this.selectedItemId = it.menuId
         } ?: let {
             val index = NavigatorData.fragStackList.indexOfFirst { it.tag == fragTag }

@@ -30,7 +30,6 @@ class TabFragment : Fragment() {
 
             root = inflater.inflate(R.layout.fragment_tab, container, false)
 
-
             val navigator = Navigator.find<ChildController>(firstFragment) {
 
             }.apply {
