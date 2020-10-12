@@ -1,6 +1,7 @@
 package com.android.easynav.src
 
 import android.app.Activity
+import android.content.Intent
 import androidx.core.view.forEachIndexed
 import androidx.fragment.app.Fragment
 import com.android.easynav.src.Navigator.Companion.backCurrentFragment
@@ -64,6 +65,8 @@ fun Fragment.getFragTag(extra: String = ""): String {
 }
 
 fun Fragment.navigateUp() = Navigator.Builder("", null, this.activity).build().navigateUp()
+fun Fragment.navigateUp(code: Int, intent: Intent) =
+    Navigator.Builder("", null, this.activity).build().navigateUp(code, intent)
 
 inline fun <reified T : BaseController> Fragment.navController(
     fragment: Fragment,

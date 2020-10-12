@@ -37,6 +37,7 @@ class TabFragment : Fragment() {
                 navigate()
             }
 
+
             navigator.createBottomMenu<ChildController>(
                 root.fragment_main_navigation,
                 listOf(
