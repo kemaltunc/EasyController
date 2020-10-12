@@ -1,5 +1,6 @@
 package com.android.easynav.src
 
+import android.app.Activity
 import androidx.core.view.forEachIndexed
 import androidx.fragment.app.Fragment
 import com.android.easynav.src.Navigator.Companion.backCurrentFragment
@@ -11,6 +12,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 
 
 inline fun <reified T : BaseController> BottomNavigationView.create(
+    activity: Activity,
     fragments: List<Fragment>
 ) {
 
@@ -31,7 +33,7 @@ inline fun <reified T : BaseController> BottomNavigationView.create(
         val item = bottomMenu.find { it.menuId == menuItem.itemId }
 
         item?.let {
-            if (changeScreen) Navigator.find<T>(item.fragment).navigate()
+            if (changeScreen) Navigator.find<T>(activity, item.fragment).navigate()
         }
         changeScreen = true
         return@setOnNavigationItemSelectedListener true
@@ -60,3 +62,10 @@ inline fun <reified T : BaseController> BottomNavigationView.create(
 fun Fragment.getFragTag(extra: String = ""): String {
     return this::class.java.simpleName + extra
 }
+
+fun Fragment.navigateUp() = Navigator.Builder("", null, this.activity).build().navigateUp()
+
+inline fun <reified T : BaseController> Fragment.navController(
+    fragment: Fragment,
+    block: Navigator.Builder.() -> Unit = {}
+) = Navigator.find<T>(this.activity, fragment, block)

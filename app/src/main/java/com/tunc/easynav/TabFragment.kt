@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.android.easynav.src.Navigator
+import com.android.easynav.src.navController
 import com.tunc.easynav.fragments.*
 import kotlinx.android.synthetic.main.fragment_tab.view.*
 
@@ -30,7 +30,7 @@ class TabFragment : Fragment() {
 
             root = inflater.inflate(R.layout.fragment_tab, container, false)
 
-            val navigator = Navigator.find<ChildController>(firstFragment) {
+            val navigator = navController<ChildController>(firstFragment) {
 
             }.apply {
                 addController(R.id.inner_frameview, childFragmentManager)
@@ -43,7 +43,9 @@ class TabFragment : Fragment() {
                     firstFragment, secondFragment, thirdFragment, fourthFragment, fiveFragment
                 )
             )
+
         }
+
 
         return root
 

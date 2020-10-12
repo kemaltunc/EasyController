@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import com.android.easynav.src.NavigatorData.Companion.backFragment
 import com.android.easynav.src.NavigatorData.Companion.fragStackList
@@ -38,12 +39,6 @@ class Navigator(
         builder.popupFragment
     )
 
-    private val getActivity: Activity?
-        get() {
-            val last = fragStackList.lastOrNull()
-            val currentFragment = getFragmentByTag(last?.tag, last?.fm)
-            return currentFragment?.activity
-        }
 
     fun bind(containerId: Int) {
         if (activity != null) {
@@ -134,7 +129,7 @@ class Navigator(
 
 
         }
-        getActivity?.onBackPressed()
+        activity?.onBackPressed()
     }
 
     fun navigateUp(code: Int, intent: Intent) {
@@ -149,6 +144,7 @@ class Navigator(
         fragments: List<Fragment>
     ) {
         view.create<T>(
+            (view.context as Activity),
             fragments
         )
     }
@@ -186,13 +182,10 @@ class Navigator(
             .build().bind(containerId)
 
         inline fun <reified T : BaseController> find(
+            activity: Activity?,
             fragment: Fragment,
             block: Builder.() -> Unit = {}
-        ) = Builder(T::class.java.simpleName, fragment).apply(block).build()
-
-        inline fun navigateUp(
-            block: Builder.() -> Unit = {}
-        ) = Builder("", null).apply(block).build().navigateUp()
+        ) = Builder(T::class.java.simpleName, fragment, activity).apply(block).build()
 
         fun get() = Builder("", null).build()
 
@@ -218,3 +211,4 @@ class Navigator(
     }
 
 }
+
