@@ -17,13 +17,12 @@ class ControllerDetail(
 
 class Stack(
     var tag: String,
-    var fm: FragmentManager
+    var controllerName:String
 )
 
 class BottomMenu(
     var menuId: Int,
     var fragment: Fragment
-
 )
 
 class NavigatorData {

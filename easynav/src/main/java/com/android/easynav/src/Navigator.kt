@@ -5,7 +5,6 @@ import android.content.Intent
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import com.android.easynav.src.NavigatorData.Companion.backFragment
 import com.android.easynav.src.NavigatorData.Companion.fragStackList
@@ -68,10 +67,10 @@ class Navigator(
         )
     }
 
-    fun currentFragment(): Fragment? {
+    private fun currentFragment(): Fragment? {
         val frag = fragStackList.last()
 
-        return getFragmentByTag(frag.tag, frag.fm)
+        return getFragmentByTag(frag.tag, getFragmentManager(frag.controllerName))
     }
 
     fun navigate() {
@@ -94,7 +93,7 @@ class Navigator(
 
             if (history) {
                 transaction.addToBackStack(fragName)
-                fragStackList.add(Stack(fragName, findNav.fm))
+                fragStackList.add(Stack(fragName, /*findNav.fm)*/findNav.name))
             }
 
             transaction.commit()
@@ -154,13 +153,15 @@ class Navigator(
             if (fragStackList.size > 1) {
 
                 val findNav = fragStackList.takeLast(2).first()
-                val currentNav = fragStackList.last().fm
+                val currentNav = getFragmentManager(fragStackList.last().controllerName)
 
-                if (findNav.fm == currentNav) {
-                    findNav.fm.popBackStack(findNav.tag, 0)
+                val fm = getFragmentManager(fragStackList.takeLast(2).first().controllerName)
+
+                if (fm == currentNav) {
+                    fm?.popBackStack(findNav.tag, 0)
                     backFragment(findNav.tag)
                 } else {
-                    currentNav.popBackStack()
+                    currentNav?.popBackStack()
                 }
                 fragStackList.remove(fragStackList.last())
 
@@ -169,6 +170,10 @@ class Navigator(
             }
 
         }
+    }
+
+    private fun getFragmentManager(name: String): FragmentManager? {
+        return navigatorList.find { it.name == name }?.fm
     }
 
     companion object {
