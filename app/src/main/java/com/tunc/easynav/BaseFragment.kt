@@ -1,11 +1,11 @@
 package com.tunc.easynav
 
 import android.content.Context
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.android.easynav.src.BaseController
 import com.android.easynav.src.FragmentController
 import com.android.easynav.src.FragmentOption
-import com.android.easynav.src.findController
+import com.android.easynav.src.navigateExt
 
 abstract class BaseFragment : Fragment() {
 
@@ -19,17 +19,17 @@ abstract class BaseFragment : Fragment() {
     }
 
     open fun mainNavigate(fragment: Fragment, block: FragmentOption.Builder.() -> Unit = {}) {
-        navigate<MainController>(fragment, block)
+        navigator.navigateExt<MainController>(fragment, block)
     }
 
     open fun childNavigate(fragment: Fragment, block: FragmentOption.Builder.() -> Unit = {}) {
-        navigate<ChildController>(fragment, block)
+        navigator.navigateExt<ChildController>(fragment, block)
     }
 
-    inline fun <reified T : BaseController> navigate(
-        fragment: Fragment,
-        block: FragmentOption.Builder.() -> Unit = {}
-    ) {
-        navigator.navigate(findController<T>(fragment, block))
+
+    override fun onDestroyView() {
+        val parentViewGroup = view?.parent as ViewGroup?
+        parentViewGroup?.removeAllViews()
+        super.onDestroyView()
     }
 }
