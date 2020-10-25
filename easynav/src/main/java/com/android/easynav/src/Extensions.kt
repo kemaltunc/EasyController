@@ -17,13 +17,6 @@ inline fun <reified T : BaseController> findController(
 ) = FragmentOption.build<T>(fragment, block)
 
 
-inline fun <reified T : BaseController> navigate(
-    fragment: Fragment,
-    block: FragmentOption.Builder.() -> Unit = {}
-) {
-
-}
-
 inline fun <reified T : BaseController> Navigator.navigateExt(
     fragment: Fragment,
     block: FragmentOption.Builder.() -> Unit = {}
