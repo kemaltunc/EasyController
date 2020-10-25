@@ -4,9 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.android.easynav.src.findController
 import com.tunc.easynav.BaseFragment
-import com.tunc.easynav.ChildController
 import com.tunc.easynav.R
 import kotlinx.android.synthetic.main.fragment_third.view.*
 
@@ -22,8 +20,7 @@ class ThirdFragment : BaseFragment() {
         root = inflater.inflate(R.layout.fragment_third, container, false)
 
         root.go_button.setOnClickListener {
-
-            navigator.navigate(findController<ChildController>(DetailFragment()))
+            childNavigate(DetailFragment())
         }
 
         return root
