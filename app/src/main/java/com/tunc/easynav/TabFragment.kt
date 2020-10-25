@@ -4,12 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
-import com.android.easynav.src.navController
+import com.android.easynav.src.findController
 import com.tunc.easynav.fragments.*
 import kotlinx.android.synthetic.main.fragment_tab.view.*
 
-class TabFragment : Fragment() {
+class TabFragment : BaseFragment() {
 
     lateinit var root: View
 
@@ -30,13 +29,10 @@ class TabFragment : Fragment() {
 
             root = inflater.inflate(R.layout.fragment_tab, container, false)
 
-            val navigator = navController<ChildController>(firstFragment) {
-
-            }.apply {
-                addController(R.id.inner_frameview, childFragmentManager)
-                navigate()
-            }
-
+            navigator.addControllerAndStart(
+                R.id.inner_frameview, childFragmentManager,
+                findController<ChildController>(firstFragment)
+            )
 
             navigator.createBottomMenu<ChildController>(
                 root.fragment_main_navigation,

@@ -1,219 +1,40 @@
 package com.android.easynav.src
 
-import android.app.Activity
 import android.content.Intent
-import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import com.android.easynav.src.NavigatorData.Companion.backFragment
-import com.android.easynav.src.NavigatorData.Companion.fragStackList
-import com.android.easynav.src.NavigatorData.Companion.navigatorList
-import com.google.android.material.bottomnavigation.BottomNavigationView
 
 
 /**
  * Created by Kemal Tunç on 2020-09-30
  */
 
+interface Navigator {
 
-class Navigator(
-    private val controllerName: String,
-    private var fragment: Fragment?,
-    private val activity: Activity?,
-    private val label: String,
-    private val clearHistory: Boolean,
-    private val history: Boolean,
-    private val popupFragment: Fragment?
-) {
+    fun startFragment(fragmentOption: FragmentOption)
 
-
-    constructor(builder: Builder) : this(
-        builder.controllerName,
-        builder.fragment,
-        builder.activity,
-        builder.label,
-        builder.clearHistory,
-        builder.history,
-        builder.popupFragment
+    fun addControllerAndStart(
+        containerId: Int,
+        fragmentManager: FragmentManager,
+        fragmentOption: FragmentOption
     )
 
+    fun addController(containerId: Int, controllerName: String, fragmentManager: FragmentManager)
 
-    fun bind(containerId: Int) {
-        if (activity != null) {
+    fun navigate(fragmentOption: FragmentOption)
 
-            val appCompatActivity = (activity as AppCompatActivity)
+    fun navigateUp()
 
-            addController(containerId, appCompatActivity.supportFragmentManager)
+    fun navigateUp(code: Int, intent: Intent)
 
-            navigate()
-
-            appCompatActivity.onBackPressedDispatcher.addCallback(
-                appCompatActivity,
-                onBackListener(activity)
-            )
-
-        }
-    }
-
-    fun addController(containerId: Int, fragmentManager: FragmentManager) {
-
-        val index = navigatorList.indexOfFirst { it.name == controllerName }
-        if (index != -1) {
-            navigatorList.removeAt(index)
-        }
-        navigatorList.add(
-            ControllerDetail(containerId, controllerName, fragmentManager)
-        )
-    }
-
-    private fun currentFragment(): Fragment? {
-        val frag = fragStackList.last()
-
-        return getFragmentByTag(frag.tag, getFragmentManager(frag.controllerName))
-    }
-
-    fun navigate() {
-        val findNav = navigatorList.find { it.name == controllerName }
-
-        if (findNav != null && fragment != null) {
-            val fragName = fragment?.getFragTag(label) ?: ""
-
-            val index = fragStackList.indexOfFirst { it.tag == fragName }
-
-            if (index != -1 && !clearHistory) {
-                val findFrag = getFragmentByTag(fragName, findNav.fm)
-                removeFragment(findNav.fm, findFrag, index)
-            }
-
-            if (clearHistory) removeHistory(findNav.fm)
-
-            val transaction = findNav.fm.beginTransaction()
-                .replace(findNav.containerId, fragment!!, fragName)
-
-            if (history) {
-                transaction.addToBackStack(fragName)
-                fragStackList.add(Stack(fragName, /*findNav.fm)*/findNav.name))
-            }
-
-            transaction.commit()
-
-        } else {
-            throw NullPointerException("Not found controller")
-        }
-    }
-
-    private fun getFragmentByTag(tag: String?, fm: FragmentManager?): Fragment? {
-        return fm?.findFragmentByTag(tag)
-    }
+    fun getFragmentByTag(tag: String?, fm: FragmentManager?): Fragment?
 
 
-    private fun removeFragment(fragmentManager: FragmentManager, fragment: Fragment?, index: Int) {
-        fragStackList.removeAt(index)
-        if (fragment != null) {
-            fragmentManager.beginTransaction().remove(fragment).commit()
-        }
-    }
+    fun removeFragment(fragmentManager: FragmentManager, fragment: Fragment?, index: Int)
 
-    private fun removeHistory(fragmentManager: FragmentManager) {
-        fragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
-        fragStackList.clear()
-    }
+    fun removeHistory(fragmentManager: FragmentManager)
 
-    fun navigateUp() {
-        if (popupFragment != null) {
-            val fragTag = fragment?.getFragTag(label)
+    fun getFragmentManager(name: String): FragmentManager?
 
-            val frag = fragStackList.find { it.tag == fragTag }
-
-
-        }
-        activity?.onBackPressed()
-    }
-
-    fun navigateUp(code: Int, intent: Intent) {
-        currentFragment()?.let {
-            it.targetFragment!!.onActivityResult(code, Activity.RESULT_OK, intent)
-        }
-        navigateUp()
-    }
-
-    inline fun <reified T : BaseController> createBottomMenu(
-        view: BottomNavigationView,
-        fragments: List<Fragment>
-    ) {
-        view.create<T>(
-            (view.context as Activity),
-            fragments
-        )
-    }
-
-    private fun onBackListener(activity: Activity) = object : OnBackPressedCallback(true) {
-        override fun handleOnBackPressed() {
-            if (fragStackList.size > 1) {
-
-                val findNav = fragStackList.takeLast(2).first()
-                val currentNav = getFragmentManager(fragStackList.last().controllerName)
-
-                val fm = getFragmentManager(fragStackList.takeLast(2).first().controllerName)
-
-                if (fm == currentNav) {
-                    fm?.popBackStack(findNav.tag, 0)
-                    backFragment(findNav.tag)
-                } else {
-                    currentNav?.popBackStack()
-                }
-                fragStackList.remove(fragStackList.last())
-
-            } else {
-                activity.finish()
-            }
-
-        }
-    }
-
-    private fun getFragmentManager(name: String): FragmentManager? {
-        return navigatorList.find { it.name == name }?.fm
-    }
-
-    companion object {
-
-        inline fun <reified T : BaseController> bind(
-            activity: Activity,
-            containerId: Int,
-            startFragment: Fragment,
-            block: Builder.() -> Unit = {}
-        ) = Builder(T::class.java.simpleName, startFragment, activity).apply(block)
-            .build().bind(containerId)
-
-        inline fun <reified T : BaseController> find(
-            activity: Activity?,
-            fragment: Fragment,
-            block: Builder.() -> Unit = {}
-        ) = Builder(T::class.java.simpleName, fragment, activity).apply(block).build()
-
-        fun get() = Builder("", null).build()
-
-        fun backCurrentFragment(f: (tag: String) -> Unit) {
-            backFragment = f
-        }
-
-    }
-
-    class Builder(
-        val controllerName: String,
-        val fragment: Fragment?,
-        val activity: Activity? = null
-    ) {
-
-        var label: String = ""
-        var clearHistory: Boolean = false
-        var history: Boolean = true
-        var popupFragment: Fragment? = null
-
-
-        fun build() = Navigator(this)
-    }
-
+    fun currentFragment(): Fragment?
 }
-
