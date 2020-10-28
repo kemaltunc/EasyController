@@ -8,35 +8,42 @@ import androidx.fragment.app.Fragment
 
 
 class FragmentOption(
-    val controllerName: String,
-    val fragment: Fragment?,
+    val fragment: Fragment,
     val label: String,
     val clearHistory: Boolean,
     val history: Boolean,
-    val popupFragment: Fragment?
+    val popupFragment: Fragment?,
+    var tabMenuFragment: Boolean,
+    var groupId: Int,
+    var firstTabFragment: Boolean
 ) {
 
     private constructor(builder: Builder) : this(
-        builder.controllerName, builder.fragment, builder.label,
+        builder.fragment, builder.label,
         builder.clearHistory,
         builder.history,
-        builder.popupFragment
+        builder.popupFragment,
+        builder.tabMenuFragment,
+        builder.groupId,
+        builder.firstTabFragment
     )
 
     companion object {
-        inline fun <reified T : BaseController> build(
-            fragment: Fragment?,
+        inline fun build(
+            fragment: Fragment,
             block: Builder.() -> Unit
-        ) = Builder(T::class.java.simpleName, fragment).apply(block).build()
-
+        ) = Builder(fragment).apply(block).build()
     }
 
-    class Builder(val controllerName: String, val fragment: Fragment?) {
+    class Builder(val fragment: Fragment) {
 
         var label: String = ""
         var clearHistory: Boolean = false
         var history: Boolean = true
         var popupFragment: Fragment? = null
+        var tabMenuFragment: Boolean = false
+        var groupId: Int = 0
+        var firstTabFragment: Boolean = false
 
         fun build() = FragmentOption(this)
     }

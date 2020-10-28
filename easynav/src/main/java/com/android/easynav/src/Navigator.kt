@@ -1,8 +1,10 @@
 package com.android.easynav.src
 
 import android.content.Intent
+import android.os.Bundle
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
+import com.android.easynav.controller.data.FragmentStack
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 
 /**
@@ -11,30 +13,37 @@ import androidx.fragment.app.FragmentManager
 
 interface Navigator {
 
-    fun startFragment(fragmentOption: FragmentOption)
+    fun init(bundle: Bundle?)
 
-    fun addControllerAndStart(
-        containerId: Int,
-        fragmentManager: FragmentManager,
-        fragmentOption: FragmentOption
-    )
+    fun createChildContainer(containerId: Int)
 
-    fun addController(containerId: Int, controllerName: String, fragmentManager: FragmentManager)
+    fun startFragment(fragment: Fragment, block: FragmentOption.Builder.() -> Unit = {})
 
-    fun navigate(fragmentOption: FragmentOption)
+    fun mainNavigate(fragmentOption: FragmentOption)
+
+    fun childNavigate(fragmentOption: FragmentOption)
+
+    fun findController(controllerName: String, fragmentOption: FragmentOption)
 
     fun navigateUp()
 
     fun navigateUp(code: Int, intent: Intent)
 
-    fun getFragmentByTag(tag: String?, fm: FragmentManager?): Fragment?
+    fun saveState(outState: Bundle)
 
+    fun saveBottomMenuState(outState: Bundle)
 
-    fun removeFragment(fragmentManager: FragmentManager, fragment: Fragment?, index: Int)
+    fun createdNavMenu(outState: Bundle?): Boolean
 
-    fun removeHistory(fragmentManager: FragmentManager)
+    fun currentFragment(fragment: (fragment: Fragment) -> Unit)
 
-    fun getFragmentManager(name: String): FragmentManager?
+    fun createBottomMenu(
+        controllerName: String,
+        view: BottomNavigationView,
+        fragments: List<Fragment>,
+        outState: Bundle?
+    )
 
-    fun currentFragment(): Fragment?
+    fun backCurrentFragment(f: (tag: String, stack: FragmentStack) -> Unit)
+
 }

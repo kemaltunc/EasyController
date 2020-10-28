@@ -2,90 +2,93 @@ package com.android.easynav.src
 
 import android.app.Activity
 import android.content.Intent
+import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import com.android.easynav.controller.data.Controller
+import com.android.easynav.controller.data.FragmentStack
+import com.android.easynav.src.custom.create
+import com.android.easynav.src.extension.getFragTag
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 /**
  * Created by Kemal Tunç on 2020-09-30
  */
 
-
 class FragmentController(private val activity: Activity, private val containerId: Int) : Navigator {
 
-    private val controllerStack = ArrayList<ControllerStack>()
-    val fragmentStack = ArrayList<FragmentStack>()
+    var fragmentStack = ArrayList<FragmentStack>()
+    var controllerStack = ArrayList<Controller>()
+    var backFragment: (tag: String, stack: FragmentStack) -> Unit = { _, _ -> }
 
-    var backFragment: (tag: String) -> Unit = { _ -> }
 
-    override fun startFragment(fragmentOption: FragmentOption) {
+    var supportFragmentManager = (activity as AppCompatActivity).supportFragmentManager
+
+    override fun init(bundle: Bundle?) {
         val appCompatActivity = (activity as AppCompatActivity)
-
-        addController(
-            containerId,
-            fragmentOption.controllerName,
-            appCompatActivity.supportFragmentManager
-        )
         appCompatActivity.onBackPressedDispatcher.addCallback(appCompatActivity, onBackListener)
 
-        navigate(fragmentOption)
+        if (bundle != null) {
+            val fragmentController = bundle.getBundle(FRAGMENT_CONTROLLER)
+
+            fragmentController?.let { data ->
+                data.getParcelableArrayList<FragmentStack>(FRAGMENT_STACK)?.let {
+                    fragmentStack.addAll(
+                        it
+                    )
+                }
+
+                data.getParcelableArrayList<Controller>(CONTROLLER_STACK)?.let {
+                    controllerStack.addAll(
+                        it
+                    )
+                }
+            }
+        }
     }
 
-    override fun addControllerAndStart(
-        containerId: Int,
-        fragmentManager: FragmentManager,
-        fragmentOption: FragmentOption
+    override fun createChildContainer(
+        containerId: Int
     ) {
-        addController(containerId, fragmentOption.controllerName, fragmentManager)
-        navigate(fragmentOption)
+        addController(containerId, CHILD_CONTROLLER)
     }
 
-    override fun addController(
+    override fun startFragment(fragment: Fragment, block: FragmentOption.Builder.() -> Unit) {
+        addController(containerId, MAIN_CONTROLLER, FragmentOption.build(fragment, block))
+    }
+
+
+    private fun addController(
         containerId: Int,
         controllerName: String,
-        fragmentManager: FragmentManager
+        fragmentOption: FragmentOption? = null
     ) {
-        val index = controllerStack.indexOfFirst { it.controllerName == controllerName }
-        if (index != -1) {
-            controllerStack.removeAt(index)
+        val find = controllerStack.any { it.controllerName == controllerName }
+
+        if (!find) {
+            controllerStack.add(Controller(controllerName, containerId))
+            if (controllerName == MAIN_CONTROLLER && fragmentOption != null) {
+                navigate(
+                    controllerName,
+                    fragmentOption
+                )
+            }
         }
-        controllerStack.add(
-            ControllerStack(containerId, controllerName, fragmentManager)
-        )
     }
 
-    override fun navigate(fragmentOption: FragmentOption) {
 
-        val findNav = controllerStack.find { it.controllerName == fragmentOption.controllerName }
+    override fun mainNavigate(fragmentOption: FragmentOption) {
+        navigate(MAIN_CONTROLLER, fragmentOption)
+    }
 
-        if (findNav != null) {
-            val fragName = fragmentOption.fragment?.getFragTag(fragmentOption.label) ?: ""
+    override fun childNavigate(fragmentOption: FragmentOption) {
+        navigate(CHILD_CONTROLLER, fragmentOption)
+    }
 
-            val index = fragmentStack.indexOfFirst { it.tag == fragName }
-
-            if (index != -1 && !fragmentOption.clearHistory) {
-                val findFrag = getFragmentByTag(fragName, findNav.fm)
-                removeFragment(findNav.fm, findFrag, index)
-            }
-
-            if (fragmentOption.clearHistory) removeHistory(findNav.fm)
-
-            val transaction = findNav.fm.beginTransaction()
-                .replace(findNav.containerId, fragmentOption.fragment!!, fragName)
-
-            if (fragmentOption.history) {
-                transaction.addToBackStack(fragName)
-                fragmentStack.add(FragmentStack(fragName, findNav.controllerName))
-            }
-
-            transaction.commit()
-
-        } else {
-            throw NullPointerException("Not found controller")
-        }
-
+    override fun findController(controllerName: String, fragmentOption: FragmentOption) {
+        navigate(controllerName, fragmentOption)
     }
 
     override fun navigateUp() {
@@ -99,68 +102,215 @@ class FragmentController(private val activity: Activity, private val containerId
         navigateUp()
     }
 
-    override fun currentFragment(): Fragment? {
-        val frag = fragmentStack.last()
-        return getFragmentByTag(frag.tag, getFragmentManager(frag.controllerName))
+    private fun navigate(controllerName: String, fragmentOption: FragmentOption) {
+
+        val controller = controllerStack.find { it.controllerName == controllerName }
+
+        val fragmentManager = getFragmentManagerWithController(controllerName)
+
+        if (controller != null && fragmentManager != null) {
+
+
+            val fragTag = fragmentOption.fragment.getFragTag()
+
+            val fragStackFirstIndex = fragmentStack.indexOfFirst { it.tag == fragTag }
+
+            val condition =
+                fragStackFirstIndex != -1 &&
+                        !fragmentOption.clearHistory &&
+                        !fragmentStack[fragStackFirstIndex].firstTabFragment
+
+
+            if (fragmentStack.isNotEmpty() && fragmentStack.last().tag == fragTag) {
+                val findFrag = findFragmentWithTag(fragTag, fragmentManager)
+                removeFragment(fragmentManager, findFrag, fragStackFirstIndex)
+            } else if (fragStackFirstIndex != -1 && fragmentStack[fragStackFirstIndex].firstTabFragment && fragmentStack.count { it.tag == fragTag } == 2) {
+
+                val fragLastIndex = fragmentStack.indexOfLast { it.tag == fragTag }
+
+                val findFrag = findFragmentWithTag(fragTag, fragmentManager)
+
+                removeFragment(fragmentManager, findFrag, fragLastIndex)
+
+                fragmentStack[fragStackFirstIndex].firstTabFragment = true
+
+            } else if (condition) {
+                val findFrag = findFragmentWithTag(fragTag, fragmentManager)
+                removeFragment(fragmentManager, findFrag, fragStackFirstIndex)
+            }
+
+
+            if (fragmentOption.clearHistory) {
+                removeHistory()
+            }
+
+            val transaction = fragmentManager.beginTransaction()
+                .replace(
+                    controller.containerId,
+                    fragmentOption.fragment,
+                    fragmentOption.fragment.getFragTag()
+                )
+
+            if (fragmentOption.history) {
+                transaction.addToBackStack(fragTag)
+                fragmentStack.add(
+                    FragmentStack(
+                        fragTag,
+                        controllerName,
+                        fragmentOption.tabMenuFragment,
+                        getGroupId(fragmentOption),
+                        fragmentOption.firstTabFragment
+                    )
+                )
+            }
+
+            transaction.commit()
+
+        } else {
+            throw NullPointerException("Not found controller")
+        }
+
+
     }
 
-
-    override fun getFragmentByTag(tag: String?, fm: FragmentManager?): Fragment? {
-        return fm?.findFragmentByTag(tag)
+    private fun getGroupId(fragmentOption: FragmentOption) = when {
+        fragmentOption.tabMenuFragment -> fragmentOption.groupId
+        fragmentStack.size > 0 -> {
+            val lastFrag = fragmentStack.last()
+            lastFrag.groupId
+        }
+        else -> {
+            0
+        }
     }
 
-    override fun removeFragment(fragmentManager: FragmentManager, fragment: Fragment?, index: Int) {
+    private fun getBundle(): Bundle {
+        val bundle = Bundle()
+
+        bundle.putParcelableArrayList(FRAGMENT_STACK, fragmentStack)
+        bundle.putParcelableArrayList(CONTROLLER_STACK, controllerStack)
+
+        return bundle
+    }
+
+    override fun saveState(outState: Bundle) {
+        outState.putBundle(FRAGMENT_CONTROLLER, getBundle())
+    }
+
+    private fun getFragmentManagerWithController(controllerName: String): FragmentManager? {
+        return if (controllerName == MAIN_CONTROLLER) {
+            return supportFragmentManager
+        } else {
+            findChildFragmentManager(supportFragmentManager)
+        }
+    }
+
+    private fun findChildFragmentManager(supportFragmentManager: FragmentManager): FragmentManager? {
+        return findFragmentWithFragmentManager(supportFragmentManager)?.childFragmentManager
+    }
+
+    private fun findFragmentWithFragmentManager(fragmentManager: FragmentManager): Fragment? {
+        return fragmentManager.findFragmentById(containerId)
+    }
+
+    private fun findFragmentWithTag(tag: String, fragmentManager: FragmentManager?): Fragment? {
+        return fragmentManager?.findFragmentByTag(tag)
+    }
+
+    private fun removeFragment(fragmentManager: FragmentManager, fragment: Fragment?, index: Int) {
         fragmentStack.removeAt(index)
+
         if (fragment != null) {
             fragmentManager.beginTransaction().remove(fragment).commit()
         }
     }
 
-    override fun removeHistory(fragmentManager: FragmentManager) {
-        fragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
-        fragmentStack.clear()
-    }
 
-    override fun getFragmentManager(name: String): FragmentManager? {
-        return controllerStack.find { it.controllerName == name }?.fm
+    private fun removeHistory() {
+        controllerStack.forEach {
+            getFragmentManagerWithController(it.controllerName)?.popBackStack(
+                null,
+                FragmentManager.POP_BACK_STACK_INCLUSIVE
+            )
+        }
+        fragmentStack.clear()
     }
 
     private val onBackListener = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             if (fragmentStack.size > 1) {
-                val findNav = fragmentStack.takeLast(2).first()
-                val currentNav = getFragmentManager(fragmentStack.last().controllerName)
 
-                val fm = getFragmentManager(fragmentStack.takeLast(2).first().controllerName)
+                val dest = fragmentStack.takeLast(2).first()
+                val destFm = getFragmentManagerWithController(dest.controllerName)
 
-                if (fm == currentNav) {
-                    fm?.popBackStack(findNav.tag, 0)
-                    backFragment(findNav.tag)
+                val currentFm =
+                    getFragmentManagerWithController(fragmentStack.last().controllerName)
+
+                if (destFm == currentFm) {
+                    destFm?.popBackStack(dest.tag, 0)
+                    backFragment(dest.tag, dest)
                 } else {
-                    currentNav?.popBackStack()
+                    currentFm?.popBackStack()
                 }
                 fragmentStack.remove(fragmentStack.last())
+
             } else {
                 activity.finish()
             }
 
         }
+
     }
 
-    fun backCurrentFragment(f: (tag: String) -> Unit) {
+    private fun currentFragment(): Fragment? {
+        val frag = fragmentStack.last()
+        return findFragmentWithTag(frag.tag, getFragmentManagerWithController(frag.controllerName))
+    }
+
+
+    override fun backCurrentFragment(f: (tag: String, stack: FragmentStack) -> Unit) {
         backFragment = f
     }
 
-    inline fun <reified T : BaseController> createBottomMenu(
+
+    override fun currentFragment(fragment: (fragment: Fragment) -> Unit) {
+        currentFragment()?.let {
+            fragment(it)
+        }
+    }
+
+    override fun createBottomMenu(
+        controllerName: String,
         view: BottomNavigationView,
-        fragments: List<Fragment>
+        fragments: List<Fragment>,
+        outState: Bundle?
     ) {
-        view.create<T>(
+        view.create(
+            controllerName,
             fragments,
-            this
+            this,
+            createdNavMenu(outState)
         )
+    }
+
+    override fun saveBottomMenuState(outState: Bundle) {
+        outState.putBoolean(CREATED_NAV_MENU, true)
+    }
+
+    override fun createdNavMenu(outState: Bundle?): Boolean {
+        return outState?.getBoolean(CREATED_NAV_MENU, false) ?: false
+    }
+
+
+    companion object {
+        const val FRAGMENT_CONTROLLER = "fragment_controller"
+        const val FRAGMENT_STACK = "fragment_stack"
+        const val CONTROLLER_STACK = "controller_stack"
+        const val CREATED_NAV_MENU = "created_nav_menu"
+
+        const val MAIN_CONTROLLER = "main_controller"
+        const val CHILD_CONTROLLER = "child_controller"
     }
 
 
 }
-

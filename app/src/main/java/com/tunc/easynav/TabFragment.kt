@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.android.easynav.src.findController
+import com.android.easynav.src.FragmentController
 import com.tunc.easynav.fragments.*
 import kotlinx.android.synthetic.main.fragment_tab.view.*
 
@@ -25,29 +25,29 @@ class TabFragment : BaseFragment() {
         savedInstanceState: Bundle?
     ): View? {
 
-        if (!this::root.isInitialized) {
+        root = inflater.inflate(R.layout.fragment_tab, container, false)
 
-            root = inflater.inflate(R.layout.fragment_tab, container, false)
+        navigator.createChildContainer(R.id.inner_frameview)
 
-            navigator.addControllerAndStart(
-                R.id.inner_frameview, childFragmentManager,
-                findController<ChildController>(firstFragment)
-            )
-
-            navigator.createBottomMenu<ChildController>(
-                root.fragment_main_navigation,
-                listOf(
-                    firstFragment, secondFragment, thirdFragment, fourthFragment, fiveFragment
-                )
-            )
-
-
-        }
-
+        navigator.createBottomMenu(
+            FragmentController.CHILD_CONTROLLER,
+            root.fragment_main_navigation,
+            listOf(
+                firstFragment, secondFragment, thirdFragment, fourthFragment, fiveFragment
+            ),
+            savedInstanceState
+        )
 
         return root
 
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        navigator.saveBottomMenuState(outState)
+        super.onSaveInstanceState(outState)
+    }
 
+    companion object {
+        fun newInstance() = TabFragment()
+    }
 }
