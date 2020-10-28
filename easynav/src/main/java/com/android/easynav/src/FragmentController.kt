@@ -184,7 +184,7 @@ class FragmentController(private val activity: Activity, private val containerId
                 )
             }
 
-            transaction.commit()
+            transaction.commitAllowingStateLoss()
 
         } else {
             throw NullPointerException("Not found controller")
