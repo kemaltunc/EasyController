@@ -82,7 +82,7 @@ class FragmentController(private val activity: Activity, private val containerId
     }
 
 
-    fun setAnimation(animation: Animation) {
+    override fun setAnimation(animation: Animation) {
         this.animation = animation
     }
 
@@ -155,7 +155,6 @@ class FragmentController(private val activity: Activity, private val containerId
             val transaction = fragmentManager.beginTransaction()
 
 
-
             animation?.let {
                 transaction.setCustomAnimations(
                     it.enterAnimFromRight,
@@ -164,6 +163,7 @@ class FragmentController(private val activity: Activity, private val containerId
                     it.exitAnimToRight
                 )
             }
+
 
             transaction.replace(
                 controller.containerId,

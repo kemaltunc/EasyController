@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import com.android.easynav.controller.data.FragmentStack
+import com.android.easynav.src.animation.Animation
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 
@@ -45,5 +46,7 @@ interface Navigator {
     )
 
     fun backCurrentFragment(f: (tag: String, stack: FragmentStack) -> Unit)
+
+    fun setAnimation(animation: Animation)
 
 }
