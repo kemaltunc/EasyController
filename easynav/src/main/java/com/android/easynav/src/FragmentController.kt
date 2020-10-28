@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.android.easynav.controller.data.Controller
 import com.android.easynav.controller.data.FragmentStack
+import com.android.easynav.src.animation.Animation
 import com.android.easynav.src.custom.create
 import com.android.easynav.src.extension.getFragTag
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -25,6 +26,8 @@ class FragmentController(private val activity: Activity, private val containerId
 
 
     var supportFragmentManager = (activity as AppCompatActivity).supportFragmentManager
+
+    private var animation: Animation? = null
 
     override fun init(bundle: Bundle?) {
         val appCompatActivity = (activity as AppCompatActivity)
@@ -76,6 +79,11 @@ class FragmentController(private val activity: Activity, private val containerId
                 )
             }
         }
+    }
+
+
+    fun setAnimation(animation: Animation) {
+        this.animation = animation
     }
 
 
@@ -145,11 +153,23 @@ class FragmentController(private val activity: Activity, private val containerId
             }
 
             val transaction = fragmentManager.beginTransaction()
-                .replace(
-                    controller.containerId,
-                    fragmentOption.fragment,
-                    fragmentOption.fragment.getFragTag()
+
+
+
+            animation?.let {
+                transaction.setCustomAnimations(
+                    it.enterAnimFromRight,
+                    it.exitAnimToLeft,
+                    it.enterAnimFromLeft,
+                    it.exitAnimToRight
                 )
+            }
+
+            transaction.replace(
+                controller.containerId,
+                fragmentOption.fragment,
+                fragmentOption.fragment.getFragTag()
+            )
 
             if (fragmentOption.history) {
                 transaction.addToBackStack(fragTag)
