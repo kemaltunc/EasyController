@@ -34,18 +34,13 @@ class TabFragment : BaseFragment() {
             root.fragment_main_navigation,
             listOf(
                 firstFragment, secondFragment, thirdFragment, fourthFragment, fiveFragment
-            ),
-            savedInstanceState
+            )
         )
 
         return root
 
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        navigator.saveBottomMenuState(outState)
-        super.onSaveInstanceState(outState)
-    }
 
     companion object {
         fun newInstance() = TabFragment()

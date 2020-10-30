@@ -20,7 +20,7 @@ class ThirdFragment : BaseFragment() {
         root = inflater.inflate(R.layout.fragment_third, container, false)
 
         root.go_button.setOnClickListener {
-            childNavigate(DetailFragment())
+            mainNavigate(DetailFragment())
         }
 
         return root

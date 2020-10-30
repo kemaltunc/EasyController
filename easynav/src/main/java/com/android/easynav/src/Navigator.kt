@@ -41,12 +41,12 @@ interface Navigator {
     fun createBottomMenu(
         controllerName: String,
         view: BottomNavigationView,
-        fragments: List<Fragment>,
-        outState: Bundle?
+        fragments: List<Fragment>
     )
 
     fun backCurrentFragment(f: (tag: String, stack: FragmentStack) -> Unit)
 
     fun setAnimation(animation: Animation)
 
+    fun getFragmentState(): Bundle
 }

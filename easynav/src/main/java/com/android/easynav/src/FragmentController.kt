@@ -29,6 +29,8 @@ class FragmentController(private val activity: Activity, private val containerId
 
     private var animation: Animation? = null
 
+    private var fragmentBundle = Bundle()
+
     override fun init(bundle: Bundle?) {
         val appCompatActivity = (activity as AppCompatActivity)
         appCompatActivity.onBackPressedDispatcher.addCallback(appCompatActivity, onBackListener)
@@ -314,15 +316,15 @@ class FragmentController(private val activity: Activity, private val containerId
     override fun createBottomMenu(
         controllerName: String,
         view: BottomNavigationView,
-        fragments: List<Fragment>,
-        outState: Bundle?
+        fragments: List<Fragment>
     ) {
         view.create(
             controllerName,
             fragments,
             this,
-            createdNavMenu(outState)
+            createdNavMenu(fragmentBundle)
         )
+        saveBottomNavMenu()
     }
 
     override fun saveBottomMenuState(outState: Bundle) {
@@ -331,6 +333,14 @@ class FragmentController(private val activity: Activity, private val containerId
 
     override fun createdNavMenu(outState: Bundle?): Boolean {
         return outState?.getBoolean(CREATED_NAV_MENU, false) ?: false
+    }
+
+    private fun saveBottomNavMenu() {
+        fragmentBundle.putBoolean(CREATED_NAV_MENU, true)
+    }
+
+    override fun getFragmentState(): Bundle {
+        return fragmentBundle
     }
 
 
