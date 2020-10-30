@@ -245,13 +245,19 @@ class FragmentController(private val activity: Activity, private val containerId
         }
     }
 
+    private fun removeFragment(fragmentManager: FragmentManager, fragment: Fragment?) {
+        if (fragment != null) {
+            fragmentManager.beginTransaction().remove(fragment).commit()
+        }
+    }
+
 
     private fun removeHistory() {
-        controllerStack.forEach {
-            getFragmentManagerWithController(it.controllerName)?.popBackStack(
-                null,
-                FragmentManager.POP_BACK_STACK_INCLUSIVE
-            )
+        fragmentStack.forEach { stack ->
+            val fm = getFragmentManagerWithController(stack.controllerName)
+            fm?.let {
+                removeFragment(fm, findFragmentWithTag(stack.tag, it))
+            }
         }
         fragmentStack.clear()
     }
@@ -283,8 +289,14 @@ class FragmentController(private val activity: Activity, private val containerId
     }
 
     private fun currentFragment(): Fragment? {
-        val frag = fragmentStack.last()
-        return findFragmentWithTag(frag.tag, getFragmentManagerWithController(frag.controllerName))
+        if (fragmentStack.size > 0) {
+            val frag = fragmentStack.last()
+            return findFragmentWithTag(
+                frag.tag,
+                getFragmentManagerWithController(frag.controllerName)
+            )
+        }
+        return null
     }
 
 
