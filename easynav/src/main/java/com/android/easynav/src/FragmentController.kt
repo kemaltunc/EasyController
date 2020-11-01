@@ -63,7 +63,6 @@ class FragmentController(private val activity: Activity, private val containerId
         fragmentBundle.clear()
         mainBundle?.clear()
         fragmentStack.clear()
-        controllerStack.clear()
     }
 
     override fun createChildContainer(
