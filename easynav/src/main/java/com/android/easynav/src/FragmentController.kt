@@ -31,12 +31,17 @@ class FragmentController(private val activity: Activity, private val containerId
 
     private var fragmentBundle = Bundle()
 
+    private var mainBundle: Bundle? = null
+
     override fun init(bundle: Bundle?) {
+
+        this.mainBundle = bundle
+
         val appCompatActivity = (activity as AppCompatActivity)
         appCompatActivity.onBackPressedDispatcher.addCallback(appCompatActivity, onBackListener)
 
-        if (bundle != null) {
-            val fragmentController = bundle.getBundle(FRAGMENT_CONTROLLER)
+        if (mainBundle != null) {
+            val fragmentController = mainBundle?.getBundle(FRAGMENT_CONTROLLER)
 
             fragmentController?.let { data ->
                 data.getParcelableArrayList<FragmentStack>(FRAGMENT_STACK)?.let {
@@ -52,6 +57,13 @@ class FragmentController(private val activity: Activity, private val containerId
                 }
             }
         }
+    }
+
+    override fun resetAll() {
+        fragmentBundle.clear()
+        mainBundle?.clear()
+        fragmentStack.clear()
+        controllerStack.clear()
     }
 
     override fun createChildContainer(

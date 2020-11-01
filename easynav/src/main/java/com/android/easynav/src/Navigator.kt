@@ -49,4 +49,6 @@ interface Navigator {
     fun setAnimation(animation: Animation)
 
     fun getFragmentState(): Bundle
+
+    fun resetAll()
 }
