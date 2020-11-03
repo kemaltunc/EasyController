@@ -59,11 +59,6 @@ class FragmentController(private val activity: Activity, private val containerId
         }
     }
 
-    override fun resetAll() {
-        fragmentBundle.clear()
-        mainBundle?.clear()
-        fragmentStack.clear()
-    }
 
     override fun createChildContainer(
         containerId: Int
@@ -272,6 +267,8 @@ class FragmentController(private val activity: Activity, private val containerId
                 removeFragment(fm, findFragmentWithTag(stack.tag, it))
             }
         }
+        fragmentBundle.clear()
+        mainBundle?.clear()
         fragmentStack.clear()
     }
 

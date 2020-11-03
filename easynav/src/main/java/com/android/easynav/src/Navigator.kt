@@ -50,5 +50,4 @@ interface Navigator {
 
     fun getFragmentState(): Bundle
 
-    fun resetAll()
 }
