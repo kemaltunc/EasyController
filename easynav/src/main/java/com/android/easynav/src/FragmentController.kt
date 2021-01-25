@@ -129,70 +129,75 @@ class FragmentController(private val activity: Activity, private val containerId
 
             val fragTag = fragmentOption.fragment.getFragTag()
 
-            val fragStackFirstIndex = fragmentStack.indexOfFirst { it.tag == fragTag }
+            if (currentFragment() != null && currentFragment()?.tag ?: "" == fragTag) {
+                Log.d(TAG, "SAME FRAGMENT")
+            } else {
 
-            val condition =
-                fragStackFirstIndex != -1 &&
-                        !fragmentOption.clearHistory &&
-                        !fragmentStack[fragStackFirstIndex].firstTabFragment
+                val fragStackFirstIndex = fragmentStack.indexOfFirst { it.tag == fragTag }
 
-
-            if (fragmentStack.isNotEmpty() && fragmentStack.last().tag == fragTag) {
-                val findFrag = findFragmentWithTag(fragTag, fragmentManager)
-                removeFragment(fragmentManager, findFrag, fragStackFirstIndex)
-            } else if (fragStackFirstIndex != -1 && fragmentStack[fragStackFirstIndex].firstTabFragment && fragmentStack.count { it.tag == fragTag } == 2) {
-
-                val fragLastIndex = fragmentStack.indexOfLast { it.tag == fragTag }
-
-                val findFrag = findFragmentWithTag(fragTag, fragmentManager)
-
-                removeFragment(fragmentManager, findFrag, fragLastIndex)
-
-                fragmentStack[fragStackFirstIndex].firstTabFragment = true
-
-            } else if (condition) {
-                val findFrag = findFragmentWithTag(fragTag, fragmentManager)
-                removeFragment(fragmentManager, findFrag, fragStackFirstIndex)
-            }
+                val condition =
+                    fragStackFirstIndex != -1 &&
+                            !fragmentOption.clearHistory &&
+                            !fragmentStack[fragStackFirstIndex].firstTabFragment
 
 
-            if (fragmentOption.clearHistory) {
-                removeHistory()
-            }
+                if (fragmentStack.isNotEmpty() && fragmentStack.last().tag == fragTag) {
+                    val findFrag = findFragmentWithTag(fragTag, fragmentManager)
+                    removeFragment(fragmentManager, findFrag, fragStackFirstIndex)
+                } else if (fragStackFirstIndex != -1 && fragmentStack[fragStackFirstIndex].firstTabFragment && fragmentStack.count { it.tag == fragTag } == 2) {
 
-            val transaction = fragmentManager.beginTransaction()
+                    val fragLastIndex = fragmentStack.indexOfLast { it.tag == fragTag }
+
+                    val findFrag = findFragmentWithTag(fragTag, fragmentManager)
+
+                    removeFragment(fragmentManager, findFrag, fragLastIndex)
+
+                    fragmentStack[fragStackFirstIndex].firstTabFragment = true
+
+                } else if (condition) {
+                    val findFrag = findFragmentWithTag(fragTag, fragmentManager)
+                    removeFragment(fragmentManager, findFrag, fragStackFirstIndex)
+                }
 
 
-            animation?.let {
-                transaction.setCustomAnimations(
-                    it.enterAnimFromRight,
-                    it.exitAnimToLeft,
-                    it.enterAnimFromLeft,
-                    it.exitAnimToRight
-                )
-            }
+                if (fragmentOption.clearHistory) {
+                    removeHistory()
+                }
+
+                val transaction = fragmentManager.beginTransaction()
 
 
-            transaction.replace(
-                controller.containerId,
-                fragmentOption.fragment,
-                fragmentOption.fragment.getFragTag()
-            )
-
-            if (fragmentOption.history) {
-                transaction.addToBackStack(fragTag)
-                fragmentStack.add(
-                    FragmentStack(
-                        fragTag,
-                        controllerName,
-                        fragmentOption.tabMenuFragment,
-                        getGroupId(fragmentOption),
-                        fragmentOption.firstTabFragment
+                animation?.let {
+                    transaction.setCustomAnimations(
+                        it.enterAnimFromRight,
+                        it.exitAnimToLeft,
+                        it.enterAnimFromLeft,
+                        it.exitAnimToRight
                     )
-                )
-            }
+                }
 
-            transaction.commitAllowingStateLoss()
+
+                transaction.replace(
+                    controller.containerId,
+                    fragmentOption.fragment,
+                    fragmentOption.fragment.getFragTag()
+                )
+
+                if (fragmentOption.history) {
+                    transaction.addToBackStack(fragTag)
+                    fragmentStack.add(
+                        FragmentStack(
+                            fragTag,
+                            controllerName,
+                            fragmentOption.tabMenuFragment,
+                            getGroupId(fragmentOption),
+                            fragmentOption.firstTabFragment
+                        )
+                    )
+                }
+
+                transaction.commitAllowingStateLoss()
+            }
 
         } else {
             throw NullPointerException("Not found controller")
