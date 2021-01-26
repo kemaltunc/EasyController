@@ -159,6 +159,19 @@ class FragmentController(private val activity: Activity, private val containerId
                     removeFragment(fragmentManager, findFrag, fragStackFirstIndex)
                 }
 
+                try {
+
+                    val firstFrag = fragmentStack.indexOfFirst { it.firstTabFragment }
+
+                    if (firstFrag != -1 && fragmentStack.count() > 1 && fragmentStack[firstFrag].tag == fragmentStack[firstFrag + 1].tag) {
+                        val findFrag =
+                            findFragmentWithTag(fragmentStack[firstFrag + 1].tag, fragmentManager)
+                        removeFragment(fragmentManager, findFrag, firstFrag + 1)
+                    }
+                } catch (e: IndexOutOfBoundsException) {
+                    e.printStackTrace()
+                }
+
 
                 if (fragmentOption.clearHistory) {
                     removeHistory()
@@ -358,6 +371,7 @@ class FragmentController(private val activity: Activity, private val containerId
 
 
     companion object {
+        const val TAG = "FragmentController"
         const val FRAGMENT_CONTROLLER = "fragment_controller"
         const val FRAGMENT_STACK = "fragment_stack"
         const val CONTROLLER_STACK = "controller_stack"
