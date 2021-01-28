@@ -160,13 +160,10 @@ class FragmentController(private val activity: Activity, private val containerId
                 }
 
                 try {
-
                     val firstFrag = fragmentStack.indexOfFirst { it.firstTabFragment }
 
                     if (firstFrag != -1 && fragmentStack.count() > 1 && fragmentStack[firstFrag].tag == fragmentStack[firstFrag + 1].tag) {
-                        val findFrag =
-                            findFragmentWithTag(fragmentStack[firstFrag + 1].tag, fragmentManager)
-                        removeFragment(fragmentManager, findFrag, firstFrag + 1)
+                        fragmentStack.removeAt(firstFrag + 1)
                     }
                 } catch (e: IndexOutOfBoundsException) {
                     e.printStackTrace()
